@@ -5,15 +5,15 @@ module testbench();
 
   logic [31:0] WriteData, DataAdr;
   logic        MemWrite;
-//  wire [3:0] VGA_R;
-//  wire [3:0] VGA_G;
-//  wire [3:0] VGA_B;
-//  wire VGA_HS_O;
-//  wire VGA_VS_O;
+  wire [3:0] VGA_R;
+  wire [3:0] VGA_G;
+  wire [3:0] VGA_B;
+  wire VGA_HS_O;
+  wire VGA_VS_O;
   
 
   // instantiate device to be tested
-  top dut(clk, MemWrite, VGA_R, VGA_G, VGA_B, VGA_HS_O, VGA_VS_O);
+  top dut(clk, WriteData, DataAdr, MemWrite, VGA_R, VGA_G, VGA_B, VGA_HS_O, VGA_VS_O);
   
   // initialize test
   initial

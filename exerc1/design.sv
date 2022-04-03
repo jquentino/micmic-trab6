@@ -1,7 +1,6 @@
-
-module top(input  logic        sysclk, reset,
+module top(input  logic        sysclk,
            output logic [31:0] WriteData, DataAdr, 
-           output logic        MemWrite,
+           output logic        MemWrite,		
 
            output       [3:0]  VGA_R, VGA_G, VGA_B, 
            output              VGA_HS_O, VGA_VS_O);
@@ -17,38 +16,15 @@ module top(input  logic        sysclk, reset,
           WriteData, ReadData);
   imem imem(PC, Instr);
   dmem dmem(sysclk, MemWrite, DataAdr, WriteData, ReadData);
-  //Incluir vga aqui e arrumar portas de RGB, poweronreset, vga, clk_wiz_1
+
   
 //===============================================================================================================
   
-  //mem #("mario32.bin") ram(sysclk, we, address, data, vaddr, vdata); 		//Comentar para nao dar warning na simulacao
   power_on_reset por(sysclk, reset);
   clk_wiz_1 clockdiv(pixel_clk, sysclk); // 25MHz 
   vga video(pixel_clk, reset, ReadData, vaddr, VGA_R, VGA_G, VGA_B, VGA_HS_O, VGA_VS_O);
 endmodule
 
-//========================================================
-// Comentar esta secao para não dar warning na simulacao
-//module mem #(parameter filename = "ram.hex")
-//          (input clock, we,
-//           input [6:0] address,
-//           inout [31:0] data,
-//           input [6:0] vaddr,
-//           output [31:0] vdata);
-
-//  logic [31:0] RAM[127:0];
-
-//  initial
-//    $readmemb(filename, RAM);
-
-//  assign data  = we ? 'bz : RAM[address]; 
-//  assign vdata = RAM[vaddr]; 
-
-//  always @(posedge clock)
-//   if (we) RAM[address] <= data;
-//endmodule
-
-//========================================================
 module power_on_reset(
   input clk, 
   output reset);
@@ -135,11 +111,12 @@ endmodule
 //===============================================================================================================
 
 module dmem(input  logic        clk, we,
-            input  logic [31:0] a, wd,
-            output logic [31:0] rd);
+            input  logic [31:0] a, wd, //va
+            output logic [31:0] rd);   //vd
 
   logic [31:0] RAM[63:0];
-
+ 
+ 
   assign rd = RAM[a[31:2]]; // word aligned
 
   always_ff @(posedge clk)
