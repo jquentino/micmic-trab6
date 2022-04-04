@@ -1,35 +1,69 @@
-module cordic_tb();
-    reg clock = 0;
-    reg reset = 0;
-    reg start = 0;
-    wire [31:0] cos_out;
-    wire [31:0] sin_out;
-    
-    wire [31:0] angle;
-    
-    cordic cordic(
-        .angle(angle),
-        
-        .clock(clock),
-        .reset(reset),
-        .start(start),
-        .angle_in(32'hc0000000),
-        .cos_out(cos_out),
-        .sin_out(sin_out)
-    );
-    
-    always #5 clock = ~clock;
-    
-    initial begin
-        $display("c r s cos      sin");
-        $display("- - - -------- --------");
-        $monitor("%b %b %b %h %h %h", clock, reset, start, cos_out, sin_out, angle);
-        
-        #12 reset = 1;
-        #15 reset = 0;
-        #20 start = 1;
-        #10 start = 0;
-        
-        #330 $finish;
-    end
+`timescale 1 ns/100 ps
+
+module cordic_test;
+
+localparam  SZ = 16; // precisão de bits
+
+reg  [SZ-1:0] Xin, Yin;
+reg  [31:0] angle;
+wire [SZ:0] Xout, Yout;
+reg         CLK_100MHZ;
+
+//Gerador de ondas
+
+localparam FALSE = 1'b0;
+localparam TRUE = 1'b1;
+
+localparam VALUE = 32000/1.647; // Como o ganho do sistema é de 1,647, realiza-se a divisão do valor por ele
+
+reg signed [63:0] i;
+reg      start;
+
+initial
+begin
+   start = FALSE;
+   $write("Starting sim");
+   CLK_100MHZ = 1'b0;
+   angle = 0;
+   Xin = VALUE;
+   Yin = 1'd0;
+	i=60;
+
+   #1000;
+   @(posedge CLK_100MHZ);
+   start = TRUE;
+
+    for (i = 0; i < 360; i = i + 1)     // pega ângulos de entrada de 0 a 359° com incremento de 1°
+   //for (i = 30; i < 60; i = i + 30)     // increment by 30 degrees only
+   begin
+      @(posedge CLK_100MHZ);
+      start = FALSE;
+      angle = ((1 << 32)*i)/360;    // example: 45 deg = 45/360 * 2^32 = 32'b00100000000000000000000000000000 = 45.000 degrees -> atan(2^0)
+     $display ("angulo = %d, %h",i, angle);
+   end
+
+   #500
+  $write("Fim da execução");
+   $stop;
+end
+
+ sine_cosine cordic(CLK_100MHZ, angle, Xin, Yin, Xout, Yout);
+
+parameter CLK100_SPEED = 10;  // 100Mhz = 10nS
+
+initial
+begin
+  $dumpfile("dump.vcd");
+  $dumpvars;
+  
+  CLK_100MHZ = 1'b0;
+  $display ("CLK_100MHZ started");
+  #5;
+  forever
+  begin
+    #(CLK100_SPEED/2) CLK_100MHZ = 1'b1;
+    #(CLK100_SPEED/2) CLK_100MHZ = 1'b0;
+  end
+end
+
 endmodule
